@@ -95,4 +95,75 @@ export class OrderController {
     await orderRepository.remove(order);
     return res.status(204).send();
   }
+  static async getProductsByOrder(req: Request, res: Response) {
+    const orderRepository = AppDataSource.getRepository(Order);
+    const { id } = req.params;
+
+    const order = await orderRepository.findOne({
+      where: { id: Number(id) },
+      relations: ["products"],
+    });
+
+    if (!order) return res.status(404).json({ message: "Order not found" });
+
+    return res.json(order.products);
+  }
+  static async addProductsToOrder(req: Request, res: Response) {
+    const orderRepository = AppDataSource.getRepository(Order);
+    const productRepository = AppDataSource.getRepository(Product);
+    const { id } = req.params;
+    const { productIds } = req.body;
+
+    const order = await orderRepository.findOne({
+      where: { id: Number(id) },
+      relations: ["products"],
+    });
+
+    if (!order) return res.status(404).json({ message: "Order not found" });
+
+    const productsToAdd = await productRepository.findBy({ id: In(productIds) });
+
+    if (productsToAdd.length === 0)
+      return res.status(400).json({ message: "No valid products found" });
+
+    // evita duplicados
+    const existingIds = order.products.map((p) => p.id);
+    const newProducts = productsToAdd.filter((p) => !existingIds.includes(p.id));
+
+    order.products = [...order.products, ...newProducts];
+    order.totalAmount = order.products.reduce(
+      (sum, p) => sum + Number(p.price),
+      0
+    );
+
+    await orderRepository.save(order);
+
+    return res.status(200).json(order);
+  }
+
+  static async removeProductsFromOrder(req: Request, res: Response) {
+    const orderRepository = AppDataSource.getRepository(Order);
+    const { id } = req.params;
+    const { productIds } = req.body;
+
+    const order = await orderRepository.findOne({
+      where: { id: Number(id) },
+      relations: ["products"],
+    });
+
+    if (!order) return res.status(404).json({ message: "Order not found" });
+
+    order.products = order.products.filter(
+      (p) => !productIds.includes(p.id)
+    );
+
+    order.totalAmount = order.products.reduce(
+      (sum, p) => sum + Number(p.price),
+      0
+    );
+
+    await orderRepository.save(order);
+
+    return res.status(200).json(order);
+  }
 }

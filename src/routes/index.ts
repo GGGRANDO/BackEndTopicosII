@@ -7,9 +7,9 @@ import auth from "../middleware/authentication"
 
 const router = Router()
 
-router.use('/login', auth.hasAuthentication, loginRouter)
-router.use('/users', auth.hasAuthentication, userRouter)
-router.use('/products', productRouter)   
-router.use('/orders', orderRouter)   
+router.use('/login', loginRouter)
+router.use('/users',  userRouter)
+router.use('/products',  auth.hasAuthentication, productRouter)   
+router.use('/orders', auth.hasAuthentication, orderRouter)   
 
 export default router
