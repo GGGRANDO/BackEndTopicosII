@@ -8,7 +8,12 @@ export class OrderController {
   static async getAll(req: Request, res: Response) {
     const orderRepository = AppDataSource.getRepository(Order);
     const orders = await orderRepository.find({ relations: ["products"] });
-    return res.json(orders);
+    const normalized = orders.map((o) => ({
+      ...o,
+      totalAmount: Number(o.totalAmount),
+      products: o.products.map((p) => ({ ...p, price: Number(p.price) })),
+    }));
+    return res.json(normalized);
   }
 
   static async getById(req: Request, res: Response) {
@@ -19,7 +24,12 @@ export class OrderController {
       relations: ["products"],
     });
     if (!order) return res.status(404).json({ message: "Order not found" });
-    return res.json(order);
+    const normalized = {
+      ...order,
+      totalAmount: Number(order.totalAmount),
+      products: order.products.map((p) => ({ ...p, price: Number(p.price) })),
+    };
+    return res.json(normalized);
   }
 
   static async create(req: Request, res: Response) {
@@ -49,7 +59,12 @@ export class OrderController {
     });
 
     await orderRepository.save(order);
-    return res.status(201).json(order);
+    const normalized = {
+      ...order,
+      totalAmount: Number(order.totalAmount),
+      products: order.products.map((p) => ({ ...p, price: Number(p.price) })),
+    };
+    return res.status(201).json(normalized);
   }
 
   static async update(req: Request, res: Response) {
@@ -82,7 +97,12 @@ export class OrderController {
     order.totalAmount = totalAmount;
 
     await orderRepository.save(order);
-    return res.json(order);
+    const normalized = {
+      ...order,
+      totalAmount: Number(order.totalAmount),
+      products: order.products.map((p) => ({ ...p, price: Number(p.price) })),
+    };
+    return res.json(normalized);
   }
 
   static async delete(req: Request, res: Response) {
@@ -137,8 +157,12 @@ export class OrderController {
     );
 
     await orderRepository.save(order);
-
-    return res.status(200).json(order);
+    const normalized = {
+      ...order,
+      totalAmount: Number(order.totalAmount),
+      products: order.products.map((p) => ({ ...p, price: Number(p.price) })),
+    };
+    return res.status(200).json(normalized);
   }
 
   static async removeProductsFromOrder(req: Request, res: Response) {
@@ -163,7 +187,11 @@ export class OrderController {
     );
 
     await orderRepository.save(order);
-
-    return res.status(200).json(order);
+    const normalized = {
+      ...order,
+      totalAmount: Number(order.totalAmount),
+      products: order.products.map((p) => ({ ...p, price: Number(p.price) })),
+    };
+    return res.status(200).json(normalized);
   }
 }

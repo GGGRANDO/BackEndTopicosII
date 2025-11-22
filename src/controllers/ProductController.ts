@@ -8,7 +8,8 @@ export class ProductController {
   static async getAll(req: Request, res: Response): Promise<Response> {
     try {
       const products = await productRepository.find();
-      return res.status(200).json(products);
+      const normalized = products.map((p) => ({ ...p, price: Number(p.price), available: Boolean(p.available) }));
+      return res.status(200).json(normalized);
     } catch (error) {
       return res.status(500).json({ message: "Error fetching products", error });
     }
@@ -23,7 +24,8 @@ export class ProductController {
         return res.status(404).json({ message: "Product not found" });
       }
 
-      return res.status(200).json(product);
+      const normalized = { ...product, price: Number(product.price), available: Boolean(product.available) };
+      return res.status(200).json(normalized);
     } catch (error) {
       return res.status(500).json({ message: "Error fetching product", error });
     }
@@ -44,7 +46,8 @@ export class ProductController {
       });
 
       await productRepository.save(newProduct);
-      return res.status(201).json(newProduct);
+      const normalized = { ...newProduct, price: Number(newProduct.price), available: Boolean(newProduct.available) };
+      return res.status(201).json(normalized);
     } catch (error) {
       return res.status(500).json({ message: "Error creating product", error });
     }
@@ -63,7 +66,8 @@ export class ProductController {
       productRepository.merge(product, data);
       const updated = await productRepository.save(product);
 
-      return res.status(200).json(updated);
+      const normalized = { ...updated, price: Number(updated.price), available: Boolean(updated.available) };
+      return res.status(200).json(normalized);
     } catch (error) {
       return res.status(500).json({ message: "Error updating product", error });
     }
